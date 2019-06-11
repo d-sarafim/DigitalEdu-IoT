@@ -2,30 +2,25 @@
 #include <ESP8266HTTPClient.h>
 
 //Modificar as constantes abaixo conforme necessário.
-const char* ssid = "iPhone de Diego";
-const char* password = "12345678";
+const char* nomeWifi = "";
+const char* senhaWifi = "";
 
-const String orgId = "8xa6fn";
-const String deviceType = "l-sensor";
-const String deviceId = "ls-01";
-const char* deviceToken = "EnQKw4gdRbz1iBnb?9";
-const String eventId = "data";
-
+const String organizacao = "";
+const String tipo = "";
+const String id = "";
+const char* senha = "";
 
 //Nao modificar os valores das constantes abaixo
-const char* user = "use-token-auth"; 
-const String url = "http://"+orgId+".messaging.internetofthings.ibmcloud.com:1883/api/v0002/device/types/"+deviceType+"/devices/"+deviceId+"/events/"+eventId;
+const String evento = "data";
+const char* usuario = "use-token-auth"; 
+const String endereco = "http://"+organizacao+".messaging.internetofthings.ibmcloud.com:1883/api/v0002/device/types/"+tipo+"/devices/"+id+"/events/"+evento;
 
-
-//Modificar as variáveis abaixo conforme necessário. 
-String json = "";
-String dataType = "luminosity";
-int data = 20;
-
+int pinoLDR = A0;
 
 void setup () {
   Serial.begin(115200);
-  WiFi.begin(ssid, password);
+  
+  WiFi.begin(nomeWifi, senhaWifi);
  
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
@@ -33,21 +28,25 @@ void setup () {
 }
  
 void loop() {
-  sendData(); //Envia os dados 
-  delay(5000); //Delay de 5 segundos
-  data++; //Adiciona 1 ao valor de 'data'
+  int valor = analogRead(pinoLDR);
+
+  if(!isnan(valor)) {
+    enviar("luminosidade", valor);
+  }
+
+  delay(2000);
 }
 
-//Método que envia os dados para a plataforma
-void sendData() {
+
+void enviar(String descricao, double valor) {
   if (WiFi.status() == WL_CONNECTED) {  
     HTTPClient http;
-    http.begin(url);
+    http.begin(endereco);
 
-    http.setAuthorization(user, deviceToken);
+    http.setAuthorization(usuario, senha);
     http.addHeader("Content-Type", "application/json");
 
-    json = String("{\"d\":{\""+dataType+"\" : "+data+"}}");
+    String json = String("{\"d\":{\""+descricao+"\" : "+valor+"}}");
 
     int httpCode = http.POST(json);
 
